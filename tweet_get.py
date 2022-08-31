@@ -1,4 +1,5 @@
 import tweepy
+import MeCab
 
 # 認証に必要なキーとトークン
 API_KEY = 'IR2CAa7c3w5OqzilT5iCPIAbg'
@@ -9,19 +10,24 @@ ACCESS_TOKEN_SECRET = '7CuJBoA7FtHdngpAzUQpaTLTEkPRhf4Td73WWRwzXtCwb'
 # APIの認証
 auth = tweepy.OAuthHandler(API_KEY, API_SECRET)
 auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+api=tweepy.API(auth)  #APIインスタンスの作成
 
-#APIインスタンスの作成
-api=tweepy.API(auth)
+COUNT = 10
+KEYWORD = 'ゲーム'
+CLASS_LABEL = "__label__1"
 
-#アカウント指定
-id = '@Suzu_Mg'
-tweets = tweepy.Cursor(api.user_timeline, screen_name=id).items(20)
+def main():
+    get_tweet()      #ツイートを取得
+    #surfaces = get_surfaces(tweets)     #ツイートを分かち書き
+    #write_txt(surfaces)        #ツイートを書き込み
 
-i = 0
-
-for tweet in tweets:
-    if (list(tweet.text)[:2]!=['R', 'T']) & (list(tweet.text)[0]!='@'):
-        i += 1
-        print('-------------------------')
-        print(i)
+# TwitterからKEYWORDに関連するツイートを取得
+def get_tweet():
+    tweets = api.search_tweets(q=KEYWORD,count=COUNT)
+    for tweet in tweets:
+        print('-------------')
         print(tweet.text)
+
+if __name__ == '__main__':
+    main()
+
