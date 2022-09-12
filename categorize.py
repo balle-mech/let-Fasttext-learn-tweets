@@ -5,7 +5,6 @@ import MeCab
 from time import sleep
 
 COUNT = 200    # ツイート取得数
-SET = 1    # セット数×100件のツイートを取得
 model = ft.load_model('/Users/fukunagaatsushi/Documents/gitdev/CategorizeTweets/model.bin')  # 分類器
 
 # 認証に必要なキーとトークン
