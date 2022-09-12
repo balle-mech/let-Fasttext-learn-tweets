@@ -4,8 +4,9 @@ import fasttext as ft
 import MeCab
 from time import sleep
 
-COUNT = 50    # ツイート取得数
+COUNT = 200    # ツイート取得数
 SET = 1    # セット数×100件のツイートを取得
+model = ft.load_model('/Users/fukunagaatsushi/Documents/gitdev/CategorizeTweets/model.bin')  # 分類器
 
 # 認証に必要なキーとトークン
 API_KEY = 'IR2CAa7c3w5OqzilT5iCPIAbg'
@@ -20,10 +21,11 @@ def authTwitter():
     api = tweepy.API(auth)  #APIインスタンスの作成
     return api
 
-def main():
+def main():    # Twitter ID取得
+    id = get_id()
     tweets = get_tweet(id)      #ツイートを取得
     results = separate_tweet(tweets)     #ツイートを分かち書き
-    categorize(results)        #ツイートを分類
+    categorize(results, tweets)        #ツイートを分類
 
 # TwitterIDを取得
 def get_id():
@@ -45,9 +47,9 @@ def format_text(text):
         text=re.sub(r'https?://[\w/:%#\$&\?\(\)~\.=\+\-…]+', "", text)  # 外部リンクURL
         text=re.sub(r'@[\w/:%#\$&\?\(\)~\.=\+\-…]+', "", text) # リツイート元のユーザーID
         text=re.sub(r'＼', "", text)
-        text=re.sub('／', "", text)
-        text=re.sub('RT', "", text)
-        text=re.sub('\n', "", text)    # 改行文字
+        text=re.sub(r'／', "", text)
+        text=re.sub(r'RT', "", text)
+        text=re.sub(r'\n', " ", text)    # 改行文字
         return text
 
 # 文書を分かち書きし単語単位に分割
@@ -55,32 +57,33 @@ def separate_tweet(tweets):
     results = []
     tagger = MeCab.Tagger('-Owakati')
 
-    i = 1
     for tweet in tweets:
         content = format_text(tweet.text)
         wakati = tagger.parse(content)
         results.append(wakati)
     return results
-    """
-    print('------------------------')
-    print(str(i) + '件目のツイート')
-    print(result)
-    i += 1
-    """
 
-# ツイートを学習モデルに分類させる関数
-def categorize(results):
+# ツイートを学習モデルに分類させて割合表示
+def categorize(results, raw_tweets):
+    print('取得ツイート'+str(len(results))+'件')
+    category_dic = {}
+    # ツイートをカテゴリに分類し、カテゴリごとのツイート数をカウント
     for result in results:
-        model = ft.train_supervised(input='train.txt')
+        raw_tweet = raw_tweets[results.index(result)] # ツイート原文を取得
+        result = result.replace('\n', ' ')
         ret = model.predict(result)
-        print(ret)
+        cname = ret[0][0].replace('__label__', '')
+        category_dic.setdefault(cname, []).append(raw_tweet.text)
+    # 取得したツイートのうち、カテゴリごとの占める割合を表示
+    for key in category_dic:
+        tweet_num = len(category_dic[key])
+        ratio = (tweet_num / len(results)) * 100
+        if ratio > 0:
+            print('{}系ツイート:{}%'.format(key, round(ratio, 1)))
+            print('例えばこんなツイートが{}系だと判定されています。'.format(key))
+            print('--------------------')
+            print(category_dic[key][0])
+            print('--------------------')
 
 if __name__ == '__main__':
-    id = get_id()
     main()
-
-    """
-    for i in range(SET):
-        main()
-    """
-    

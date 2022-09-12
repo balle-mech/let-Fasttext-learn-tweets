@@ -34,12 +34,12 @@ def get_tweet():
 
 # 正規表現を使ってツイートから不要な情報を削除
 def format_text(text):
-    text=re.sub(r'https?://[\w/:%#\$&\?\(\)~\.=\+\-…]+', "", text)  # 外部リンクURL
-    text=re.sub(r'@[\w/:%#\$&\?\(\)~\.=\+\-…]+', "", text)  # ユーザーID
-    text=re.sub(r'＼', "", text)
-    text=re.sub('／', "", text)
-    text=re.sub('RT', "", text)
-    text=re.sub('\n', "", text) # 改行文字
+    text = re.sub(r'https?://[\w/:%#\$&\?\(\)~\.=\+\-…]+', "", text)  # 外部リンクURL
+    text = re.sub(r'@[\w/:%#\$&\?\(\)~\.=\+\-…]+', "", text)  # ユーザーID
+    text = re.sub(r'＼', "", text)
+    text = re.sub('／', "", text)
+    text = re.sub('RT', "", text)
+    text = re.sub('\n', "", text) # 改行文字
     return text
 
 # 文書を分かち書きし単語単位に分割
