@@ -5,7 +5,6 @@ import MeCab
 from time import sleep
 
 COUNT = 200    # ツイート取得数
-SET = 1    # セット数×100件のツイートを取得
 model = ft.load_model('/Users/fukunagaatsushi/Documents/gitdev/CategorizeTweets/model.bin')  # 分類器
 
 # 認証に必要なキーとトークン
@@ -21,8 +20,8 @@ def authTwitter():
     api = tweepy.API(auth)  #APIインスタンスの作成
     return api
 
-def main():    # Twitter ID取得
-    id = get_id()
+def main():
+    id = get_id()    # Twitter ID取得
     tweets = get_tweet(id)      #ツイートを取得
     results = separate_tweet(tweets)     #ツイートを分かち書き
     categorize(results, tweets)        #ツイートを分類
