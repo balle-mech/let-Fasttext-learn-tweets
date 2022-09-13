@@ -2,9 +2,8 @@ import re
 import tweepy
 import fasttext as ft
 import MeCab
-from time import sleep
 
-COUNT = 200    # ツイート取得数
+COUNT = 700    # ツイート取得数
 model = ft.load_model('/Users/fukunagaatsushi/Documents/gitdev/CategorizeTweets/model.bin')  # 分類器
 
 # 認証に必要なキーとトークン
