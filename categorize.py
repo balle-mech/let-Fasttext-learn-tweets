@@ -1,24 +1,16 @@
 import re
+from flask import Flask, render_template, redirect, request
 import tweepy
 import fasttext as ft
 import MeCab
-from time import sleep
+import config
 
-COUNT = 200    # ツイート取得数
+COUNT = 700    # ツイート取得数
 model = ft.load_model('/Users/fukunagaatsushi/Documents/gitdev/CategorizeTweets/model.bin')  # 分類器
 
-# 認証に必要なキーとトークン
-API_KEY = ''
-API_SECRET = ''
-ACCESS_TOKEN = ''
-ACCESS_TOKEN_SECRET = ''
+# flask初期設定
+app =  Flask(__name__)
 
-# TwitterAPI認証用関数
-def authTwitter():
-    auth = tweepy.OAuthHandler(API_KEY, API_SECRET)
-    auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-    api = tweepy.API(auth)  #APIインスタンスの作成
-    return api
 
 def main():
     id = get_id()    # Twitter ID取得
@@ -33,7 +25,7 @@ def get_id():
 
 # 指定したユーザーのツイートを取得
 def get_tweet(id):
-    api = authTwitter() # 認証
+    api = config.authTwitter() # API認証
     tweets = [
         tweet
         for tweet in tweepy.Cursor(api.user_timeline, screen_name=id).items(COUNT)
@@ -84,5 +76,10 @@ def categorize(results, raw_tweets):
             print(category_dic[key][0])
             print('--------------------')
 
-if __name__ == '__main__':
-    main()
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+if __name__ == "__main__":
+    app.run(debug=True)

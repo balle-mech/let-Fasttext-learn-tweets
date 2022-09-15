@@ -1,25 +1,14 @@
 import re
-import tweepy
 import MeCab
 from time import sleep
+import config
+import tweepy
 
 COUNT = 100    # ツイート取得数
 train_idx = 80    # トレーニングデータ%
 SET = 30    # セット数×100件のツイートを取得
 KEYWORDS = ['エンジニア', 'ゲーム', 'アニメ']
 
-# 認証に必要なキーとトークン
-API_KEY = ''
-API_SECRET = ''
-ACCESS_TOKEN = ''
-ACCESS_TOKEN_SECRET = ''
-
-# TwitterAPI認証用関数
-def authTwitter():
-    auth = tweepy.OAuthHandler(API_KEY, API_SECRET)
-    auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-    api = tweepy.API(auth)  #APIインスタンスの作成
-    return api
 
 def main():
     tweets = get_tweet()      #ツイートを取得
@@ -28,7 +17,7 @@ def main():
 
 # TwitterからKEYWORDに関連するツイートを取得
 def get_tweet():
-    api = authTwitter() # 認証
+    api = config.authTwitter() # API認証
     tweets = api.search_tweets(q=KEYWORD, count=COUNT)
     return tweets
 
