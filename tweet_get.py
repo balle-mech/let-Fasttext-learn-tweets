@@ -2,14 +2,13 @@ import re
 import MeCab
 from time import sleep
 import config
+import tweepy
 
 COUNT = 100    # ツイート取得数
 train_idx = 80    # トレーニングデータ%
 SET = 30    # セット数×100件のツイートを取得
 KEYWORDS = ['エンジニア', 'ゲーム', 'アニメ']
 
-<<<<<<< HEAD
-=======
 # 認証に必要なキーとトークン
 API_KEY = ''
 API_SECRET = ''
@@ -22,7 +21,7 @@ def authTwitter():
     auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
     api = tweepy.API(auth)  #APIインスタンスの作成
     return api
->>>>>>> 664d2bed4bbcc3398a54ad6b223da4a8da0d7091
+
 
 def main():
     tweets = get_tweet()      #ツイートを取得

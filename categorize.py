@@ -8,10 +8,9 @@ import config
 COUNT = 700    # ツイート取得数
 model = ft.load_model('/Users/fukunagaatsushi/Documents/gitdev/CategorizeTweets/model.bin')  # 分類器
 
-<<<<<<< HEAD
 # flask初期設定
 app =  Flask(__name__)
-=======
+
 # 認証に必要なキーとトークン
 API_KEY = ''
 API_SECRET = ''
@@ -24,7 +23,6 @@ def authTwitter():
     auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
     api = tweepy.API(auth)  #APIインスタンスの作成
     return api
->>>>>>> 664d2bed4bbcc3398a54ad6b223da4a8da0d7091
 
 def main():
     id = get_id()    # Twitter ID取得
