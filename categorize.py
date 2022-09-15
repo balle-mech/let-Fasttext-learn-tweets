@@ -11,18 +11,6 @@ model = ft.load_model('/Users/fukunagaatsushi/Documents/gitdev/CategorizeTweets/
 # flask初期設定
 app =  Flask(__name__)
 
-# 認証に必要なキーとトークン
-API_KEY = ''
-API_SECRET = ''
-ACCESS_TOKEN = ''
-ACCESS_TOKEN_SECRET = ''
-
-# TwitterAPI認証用関数
-def authTwitter():
-    auth = tweepy.OAuthHandler(API_KEY, API_SECRET)
-    auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-    api = tweepy.API(auth)  #APIインスタンスの作成
-    return api
 
 def main():
     id = get_id()    # Twitter ID取得
