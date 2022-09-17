@@ -1,5 +1,11 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<h1>extended!!!</h1>
+<div class="form">
+    <form action="/result" method="POST">
+        <label for="user_name">Twitter ID</label>
+        <input type="text" name="user_name">
+        <input type="submit" value="ツイートを解析">
+    </form>
+</div>
 {% endblock %}
