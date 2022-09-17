@@ -2,7 +2,6 @@ import re
 import MeCab
 from time import sleep
 import config
-import tweepy
 
 COUNT = 100    # ツイート取得数
 train_idx = 80    # トレーニングデータ%

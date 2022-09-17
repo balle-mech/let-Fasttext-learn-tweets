@@ -4,24 +4,31 @@ import tweepy
 import fasttext as ft
 import MeCab
 import config
+from flask_sqlalchemy import SQLAlchemy
 
 COUNT = 700    # ツイート取得数
 model = ft.load_model('/Users/fukunagaatsushi/Documents/gitdev/CategorizeTweets/model.bin')  # 分類器
 
 # flask初期設定
 app =  Flask(__name__)
+# SQLiteの準備
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///categorize.db'
+db = SQLAlchemy(app)
 
+# データベースの項目定義
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_name = db.Column(db.String(15), nullable=False)
+    num = db.Column(db.Integer)
+    category = db.Column(db.String, nullable=False)
+    ratio = db.Column(db.Integer, nullable=False)
+    raw_tweet = db.Column(db.String)
 
-def main():
-    id = get_id()    # Twitter ID取得
+def main(id):
     tweets = get_tweet(id)      #ツイートを取得
     results = separate_tweet(tweets)     #ツイートを分かち書き
     categorize(results, tweets)        #ツイートを分類
 
-# TwitterIDを取得
-def get_id():
-    id = input('Twitter IDを入力してください:')
-    return id
 
 # 指定したユーザーのツイートを取得
 def get_tweet(id):
@@ -75,11 +82,34 @@ def categorize(results, raw_tweets):
             print('--------------------')
             print(category_dic[key][0])
             print('--------------------')
+            ratio = round(ratio, 1)
+            return key
 
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/result', methods=['GET', 'POST'])
+def result():
+    user_name = request.form.get('user_name')
+    error = None
+    if not user_name:
+        error = 'IDを入力してください。'
+        return render_template('index.html', error=error)
+
+    # メイン処理
+    try:
+        get_tweet(user_name)
+    except Exception as e:
+        print(e)
+    tweets = get_tweet(user_name)
+    results = separate_tweet(tweets)
+    key = categorize(results, tweets)       #ツイートを分類
+    print(key)
+    return render_template('result.html', category = key)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
