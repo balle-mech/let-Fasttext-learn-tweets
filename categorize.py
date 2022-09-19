@@ -7,7 +7,7 @@ import config
 from flask_sqlalchemy import SQLAlchemy
 
 COUNT = 700    # ツイート取得数
-model = ft.load_model('/Users/fukunagaatsushi/Documents/gitdev/CategorizeTweets/model.bin')  # 分類器
+model = ft.load_model('model.bin')  # 分類器
 
 # flask初期設定
 app =  Flask(__name__)
@@ -32,7 +32,7 @@ def main(id):
 
 # 指定したユーザーのツイートを取得
 def get_tweet(id):
-    api = config.authTwitter() # API認証
+    api = config.authTwitter() # config.pyを使ってAPI認証
     tweets = [
         tweet
         for tweet in tweepy.Cursor(api.user_timeline, screen_name=id).items(COUNT)
@@ -102,8 +102,9 @@ def result():
     # メイン処理
     try:
         get_tweet(user_name)
-    except Exception as e:
-        print(e)
+    except Exception:
+        error = 'ユーザーが見つかりませんでした。'
+        return render_template('index.html', error=error)
     tweets = get_tweet(user_name)
     results = separate_tweet(tweets)
     key = categorize(results, tweets)       #ツイートを分類
