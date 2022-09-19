@@ -2,6 +2,9 @@
 
 {% block body %}
 <div class="form">
+    {% if error %}
+      <p class="error alert-danger rounded">{{error}}</p>
+    {% endif %}
     <form action="/result" method="POST">
         <label for="user_name">Twitter ID</label>
         <input type="text" name="user_name">
