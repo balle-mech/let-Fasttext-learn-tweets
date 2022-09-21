@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<h1>解析結果</h1>
-<h2>カテゴリー : {{ category }}</h2>
+<h1>{{ user_name }}の解析結果</h1>
+<p>{{ num }} 件のツイートを解析</p>
+{% for category, ratio in ratio_dic.items() %}
+    <h2>{{ category }}系のツイート{{ ratio }}%</h2>
+{% endfor %}
 {% endblock %}

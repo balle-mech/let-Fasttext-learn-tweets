@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import re
 from flask import Flask, render_template, redirect, request
 import tweepy
@@ -7,7 +8,7 @@ import config
 from flask_sqlalchemy import SQLAlchemy
 
 COUNT = 700    # ツイート取得数
-model = ft.load_model('model.bin')  # 分類器
+model = ft.load_model('/Users/fukunagaatsushi/Desktop/gitdev/CategorizeTweets/model.bin')  # 分類器
 
 # flask初期設定
 app =  Flask(__name__)
@@ -15,19 +16,13 @@ app =  Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///categorize.db'
 db = SQLAlchemy(app)
 
+
 # データベースの項目定義
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_name = db.Column(db.String(15), nullable=False)
-    num = db.Column(db.Integer)
-    category = db.Column(db.String, nullable=False)
-    ratio = db.Column(db.Integer, nullable=False)
-    raw_tweet = db.Column(db.String)
-
-def main(id):
-    tweets = get_tweet(id)      #ツイートを取得
-    results = separate_tweet(tweets)     #ツイートを分かち書き
-    categorize(results, tweets)        #ツイートを分類
+    # category = db.Column(db.String)
+    # ratio = db.Column(db.Integer)
+    # raw_tweet = db.Column(db.String)
 
 
 # 指定したユーザーのツイートを取得
@@ -61,29 +56,39 @@ def separate_tweet(tweets):
         results.append(wakati)
     return results
 
-# ツイートを学習モデルに分類させて割合表示
+
+# ツイートを学習モデルに分類させて辞書に格納
 def categorize(results, raw_tweets):
     print('取得ツイート'+str(len(results))+'件')
+    category_list = []
     category_dic = {}
     # ツイートをカテゴリに分類し、カテゴリごとのツイート数をカウント
     for result in results:
         raw_tweet = raw_tweets[results.index(result)] # ツイート原文を取得
         result = result.replace('\n', ' ')
-        ret = model.predict(result)
+        ret = model.predict(result)     # ツイートをカテゴリ別に分類
         cname = ret[0][0].replace('__label__', '')
+        # カテゴリ名をkeyに、ツイート原文をvalueとして辞書に格納
         category_dic.setdefault(cname, []).append(raw_tweet.text)
-    # 取得したツイートのうち、カテゴリごとの占める割合を表示
-    for key in category_dic:
-        tweet_num = len(category_dic[key])
-        ratio = (tweet_num / len(results)) * 100
-        if ratio > 0:
-            print('{}系ツイート:{}%'.format(key, round(ratio, 1)))
-            print('例えばこんなツイートが{}系だと判定されています。'.format(key))
-            print('--------------------')
-            print(category_dic[key][0])
-            print('--------------------')
-            ratio = round(ratio, 1)
-            return key
+    return category_dic
+
+
+# 取得したツイートのうち、カテゴリごとの占める割合を辞書に格納
+def get_ratio_dic(dic, results):
+    key_list = []
+    ratio_list = []
+    for key in dic:
+        key_list.append(key)
+        tweet_num = len(dic[key])   # カテゴリごとのツイート数
+        ratio = tweet_num / len(results) * 100
+        ratio = round(ratio, 1)
+        ratio_list.append(ratio)
+
+    # リストを辞書に変換
+    ratio_dic = dict(zip(key_list, ratio_list))
+    # 辞書を割合で降順にソート
+    ratio_dic = dict(sorted(ratio_dic.items(), key=lambda x: x[1], reverse=True))
+    return ratio_dic
 
 
 @app.route('/')
@@ -107,9 +112,10 @@ def result():
         return render_template('index.html', error=error)
     tweets = get_tweet(user_name)
     results = separate_tweet(tweets)
-    key = categorize(results, tweets)       #ツイートを分類
-    print(key)
-    return render_template('result.html', category = key)
+    num = len(results)
+    category_dic = categorize(results, tweets)
+    ratio_dic = get_ratio_dic(category_dic, results)
+    return render_template('result.html', user_name=user_name, num=num, ratio_dic=ratio_dic)
 
 
 if __name__ == "__main__":
