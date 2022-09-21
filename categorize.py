@@ -1,28 +1,15 @@
-from collections import OrderedDict
 import re
-from flask import Flask, render_template, redirect, request
+from flask import Flask, render_template, request
 import tweepy
 import fasttext as ft
 import MeCab
 import config
-from flask_sqlalchemy import SQLAlchemy
 
 COUNT = 700    # ツイート取得数
 model = ft.load_model('/Users/fukunagaatsushi/Desktop/gitdev/CategorizeTweets/model.bin')  # 分類器
 
 # flask初期設定
 app =  Flask(__name__)
-# SQLiteの準備
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///categorize.db'
-db = SQLAlchemy(app)
-
-
-# データベースの項目定義
-class Post(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    # category = db.Column(db.String)
-    # ratio = db.Column(db.Integer)
-    # raw_tweet = db.Column(db.String)
 
 
 # 指定したユーザーのツイートを取得
