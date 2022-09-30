@@ -1,6 +1,8 @@
-import re
+from os import remove
+import re, json
+from crypt import methods
 from random import choice
-import json
+from glob import glob
 from flask import Flask, render_template, request
 import tweepy
 import fasttext as ft
@@ -24,6 +26,7 @@ def get_tweet(id):
         ]
     return tweets
 
+
 # 正規表現を使ってツイートから不要な情報を削除
 def format_text(text):
         text=re.sub(r'https?://[\w/:%#\$&\?\(\)~\.=\+\-…]+', "", text)  # 外部リンクURL
@@ -33,6 +36,7 @@ def format_text(text):
         text=re.sub(r'RT', "", text)
         text=re.sub(r'\n', " ", text)    # 改行文字
         return text
+
 
 # 文書を分かち書きし単語単位に分割
 def separate_tweet(tweets):
@@ -83,11 +87,29 @@ def get_result_data(id):
         json_data = json.load(j)
         for key in json_data:
             json_data[key]['content'] = choice(json_data[key]['content'])
+            json_data[key] = [json_data[key]['ratio'], json_data[key]['content']]
+        return json_data
+
+
+def get_detail_data(category):
+    """detail画面で使うデータを作成する関数
+
+    jsonファイルから'ratio'キーの要素を削除し
+    指定されたカテゴリーのツイートを格納した辞書を作成
+    """
+    with open('./json_dir/'+glob('*.json'), 'r') as j:
+        json_data = json.load(j)
+        json_data.pop('ratio')
+        json_data[category] = json_data[category]['content']
         return json_data
 
 
 @app.route('/')
 def index():
+    # jsonディレクトリ内のファイルを削除
+    json_files = glob('json_dir/*.json')
+    for file in json_files:
+        remove(file)
     return render_template('index.html')
 
 
@@ -111,14 +133,13 @@ def result():
     category_dic = categorize(results, tweets)
     get_json(category_dic, results, id)
     result_data = get_result_data(id)
-    # print(ratio_dic)
-    # print(type(ratio_dic['エンジニア']))
-    return render_template(
-        'result.html',
-        id=id,
-        num=num,
-        result_data=result_data,
-        )
+    return render_template('result.html', id=id, num=num, data=result_data)
+
+
+@app.route('/detail/<category>')
+def detail(category):
+    detail_data = get_detail_data(category)
+    return render_template('detail.html', category=category, data=detail_data)
 
 
 if __name__ == "__main__":
