@@ -1,4 +1,8 @@
-import re
+from os import remove
+import re, json
+from crypt import methods
+from random import choice
+from glob import glob
 from flask import Flask, render_template, request
 import tweepy
 import fasttext as ft
@@ -6,7 +10,7 @@ import MeCab
 import config
 
 COUNT = 700    # ツイート取得数
-model = ft.load_model('/Users/fukunagaatsushi/Desktop/gitdev/CategorizeTweets/model.bin')  # 分類器
+model = ft.load_model('./model.bin')  # 分類器
 
 # flask初期設定
 app =  Flask(__name__)
@@ -22,6 +26,7 @@ def get_tweet(id):
         ]
     return tweets
 
+
 # 正規表現を使ってツイートから不要な情報を削除
 def format_text(text):
         text=re.sub(r'https?://[\w/:%#\$&\?\(\)~\.=\+\-…]+', "", text)  # 外部リンクURL
@@ -31,6 +36,7 @@ def format_text(text):
         text=re.sub(r'RT', "", text)
         text=re.sub(r'\n', " ", text)    # 改行文字
         return text
+
 
 # 文書を分かち書きし単語単位に分割
 def separate_tweet(tweets):
@@ -47,7 +53,6 @@ def separate_tweet(tweets):
 # ツイートを学習モデルに分類させて辞書に格納
 def categorize(results, raw_tweets):
     print('取得ツイート'+str(len(results))+'件')
-    category_list = []
     category_dic = {}
     # ツイートをカテゴリに分類し、カテゴリごとのツイート数をカウント
     for result in results:
@@ -60,49 +65,81 @@ def categorize(results, raw_tweets):
     return category_dic
 
 
-# 取得したツイートのうち、カテゴリごとの占める割合を辞書に格納
-def get_ratio_dic(dic, results):
-    key_list = []
-    ratio_list = []
+# 辞書をもとに分類されたツイートとその割合をjsonファイルに書き込み
+def get_json(dic, results, id):
+    categorydic = {}
     for key in dic:
-        key_list.append(key)
         tweet_num = len(dic[key])   # カテゴリごとのツイート数
         ratio = tweet_num / len(results) * 100
         ratio = round(ratio, 1)
-        ratio_list.append(ratio)
+        categorydic[key] = {}
+        categorydic[key]['ratio'] = ratio
+        categorydic[key]['content'] = dic[key]
+    with open('./json_dir/categorized-'+id+'.json', 'w') as f:
+        json.dump(categorydic, f, ensure_ascii=False, indent=2)
 
-    # リストを辞書に変換
-    ratio_dic = dict(zip(key_list, ratio_list))
-    # 辞書を割合で降順にソート
-    ratio_dic = dict(sorted(ratio_dic.items(), key=lambda x: x[1], reverse=True))
-    return ratio_dic
+
+def get_result_data(id):
+    """result画面で使う辞書型データを作成する関数
+    分類された整形前のツイートから一件のツイートをランダム抽出し辞書に格納
+    """
+    with open('./json_dir/categorized-'+id+'.json', 'r') as j:
+        json_data = json.load(j)
+        for key in json_data:
+            json_data[key]['content'] = choice(json_data[key]['content'])
+            json_data[key] = [json_data[key]['ratio'], json_data[key]['content']]
+        return json_data
+
+
+def get_detail_data(category):
+    """detail画面で使うデータを作成する関数
+
+    jsonファイルから'ratio'キーの要素を削除し
+    指定されたカテゴリーのツイートを格納した辞書を作成
+    """
+    with open('./json_dir/'+glob('*.json'), 'r') as j:
+        json_data = json.load(j)
+        json_data.pop('ratio')
+        json_data[category] = json_data[category]['content']
+        return json_data
 
 
 @app.route('/')
 def index():
+    # jsonディレクトリ内のファイルを削除
+    json_files = glob('json_dir/*.json')
+    for file in json_files:
+        remove(file)
     return render_template('index.html')
 
 
 @app.route('/result', methods=['GET', 'POST'])
 def result():
-    user_name = request.form.get('user_name')
+    id = request.form.get('id')
     error = None
-    if not user_name:
+    if not id:
         error = 'IDを入力してください。'
         return render_template('index.html', error=error)
 
     # メイン処理
     try:
-        get_tweet(user_name)
+        get_tweet(id)
     except Exception:
         error = 'ユーザーが見つかりませんでした。'
         return render_template('index.html', error=error)
-    tweets = get_tweet(user_name)
+    tweets = get_tweet(id)
     results = separate_tweet(tweets)
     num = len(results)
     category_dic = categorize(results, tweets)
-    ratio_dic = get_ratio_dic(category_dic, results)
-    return render_template('result.html', user_name=user_name, num=num, ratio_dic=ratio_dic)
+    get_json(category_dic, results, id)
+    result_data = get_result_data(id)
+    return render_template('result.html', id=id, num=num, data=result_data)
+
+
+@app.route('/detail/<category>')
+def detail(category):
+    detail_data = get_detail_data(category)
+    return render_template('detail.html', category=category, data=detail_data)
 
 
 if __name__ == "__main__":
