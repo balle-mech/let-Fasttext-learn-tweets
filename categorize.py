@@ -1,5 +1,6 @@
 from os import remove
 import re, json
+import os
 from crypt import methods
 from random import choice
 from glob import glob
@@ -97,11 +98,14 @@ def get_detail_data(category):
     jsonファイルから'ratio'キーの要素を削除し
     指定されたカテゴリーのツイートを格納した辞書を作成
     """
-    with open('./json_dir/'+glob('*.json'), 'r') as j:
+    detail_data = []
+    file = glob('./json_dir/*.json')
+    with open(file[0], 'r') as j:
         json_data = json.load(j)
-        json_data.pop('ratio')
-        json_data[category] = json_data[category]['content']
-        return json_data
+        for key in json_data:
+            del json_data[key]['ratio']
+        detail_data = json_data[category]['content']
+        return detail_data
 
 
 @app.route('/')
