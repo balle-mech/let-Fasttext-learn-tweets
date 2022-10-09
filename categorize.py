@@ -4,7 +4,7 @@ import os
 from crypt import methods
 from random import choice
 from glob import glob
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, url_for
 import tweepy
 import fasttext as ft
 import MeCab
