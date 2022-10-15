@@ -1,9 +1,6 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<header>
-  
-</header>
 <main class="container text-center">
   <div class="user-input">
     {% if error %}
@@ -12,7 +9,7 @@
     <form action="/result" method="POST">
       <div class="form-group pb-3">
         <label for="id" class="form-label">Twitter ID</label>
-        <div class="input-group">
+        <div class="input-group pb-3">
           <span class="input-group-text" id="input-group-left">@</span>
           <input type="text" class="form-control" name="id" placeholder="User name"  aria-describedby="input-group-left">
         </div>
