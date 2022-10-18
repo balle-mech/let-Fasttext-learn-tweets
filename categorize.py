@@ -1,6 +1,5 @@
 from os import remove
 import re, json
-import os
 from crypt import methods
 from random import choice
 from glob import glob
