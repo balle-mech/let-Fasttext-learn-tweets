@@ -1,5 +1,5 @@
 # created by virtualenv automatically
 .env
-__pycache__/
+__pycache__
 try.py
 json_dir/
